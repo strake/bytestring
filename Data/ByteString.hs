@@ -157,6 +157,7 @@ module Data.ByteString (
         elemIndexEnd,           -- :: Word8 -> ByteString -> Maybe Int
         findIndex,              -- :: (Word8 -> Bool) -> ByteString -> Maybe Int
         findIndices,            -- :: (Word8 -> Bool) -> ByteString -> [Int]
+        findIndexEnd,           -- :: (Word8 -> Bool) -> ByteString -> Maybe Int
         count,                  -- :: Word8 -> ByteString -> Int
 
         -- * Zipping and unzipping ByteStrings
@@ -1146,6 +1147,19 @@ findIndex k (PS x s l) = accursedUnutterablePerformIO $ withForeignPtr x $ \f ->
                                   then return (Just n)
                                   else go (ptr `plusPtr` 1) (n+1)
 {-# INLINE findIndex #-}
+
+-- | The 'findIndexEnd' function takes a predicate and a 'ByteString' and
+-- returns the index of the last element in the ByteString
+-- satisfying the predicate.
+findIndexEnd :: (Word8 -> Bool) -> ByteString -> Maybe Int
+findIndexEnd k (PS x s l) = accursedUnutterablePerformIO $ withForeignPtr x $ \ f -> go (f `plusPtr` s) (l-1)
+  where
+    go !ptr !n | n < 0     = return Nothing
+               | otherwise = do w <- peekByteOff ptr n
+                                if k w
+                                  then return (Just n)
+                                  else go ptr (n-1)
+{-# INLINE findIndexEnd #-}
 
 -- | The 'findIndices' function extends 'findIndex', by returning the
 -- indices of all elements satisfying the predicate, in ascending order.
