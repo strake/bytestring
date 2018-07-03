@@ -158,6 +158,7 @@ module Data.ByteString (
         findIndex,              -- :: (Word8 -> Bool) -> ByteString -> Maybe Int
         findIndices,            -- :: (Word8 -> Bool) -> ByteString -> [Int]
         findIndexEnd,           -- :: (Word8 -> Bool) -> ByteString -> Maybe Int
+        findIndicesEnd,         -- :: (Word8 -> Bool) -> ByteString -> [Int]
         count,                  -- :: Word8 -> ByteString -> Int
 
         -- * Zipping and unzipping ByteStrings
@@ -1169,6 +1170,15 @@ findIndices p ps = loop 0 ps
      loop !n !qs | null qs           = []
                  | p (unsafeHead qs) = n : loop (n+1) (unsafeTail qs)
                  | otherwise         =     loop (n+1) (unsafeTail qs)
+
+-- | The 'findIndicesEnd' function extends 'findIndexEnd', by returning the
+-- indices of all elements satisfying the predicate, in ascending order.
+findIndicesEnd :: (Word8 -> Bool) -> ByteString -> [Int]
+findIndicesEnd p ps = loop (length ps - 1) ps
+   where
+     loop !n !qs | null qs           = []
+                 | p (unsafeLast qs) = n : loop (n-1) (unsafeInit qs)
+                 | otherwise         =     loop (n-1) (unsafeInit qs)
 
 -- ---------------------------------------------------------------------
 -- Searching ByteStrings
